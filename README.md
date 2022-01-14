@@ -1,4 +1,10 @@
-# adminMongo
+# Fork Notice
+1. MongoDB
+2. Node
+3. Express, Handlebars
+4. Electron
+
+# AdminMongo
 
 ![npm downloads badge](https://img.shields.io/npm/dm/admin-mongo.svg "npm download badge")
 ![npm version badge](https://img.shields.io/npm/v/admin-mongo.svg "npm version badge")
