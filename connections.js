@@ -1,5 +1,21 @@
+const express = require( 'express' );
+
 var MongoClient = require('mongodb').MongoClient;
 
+/**
+ * 연결 개체 타입 정의
+ * @typedef {Object} Connection
+ * @property {string} connName 
+ * @property {string} connString 
+ * @property {Object} connOptions 
+ */
+
+/**
+ * 연결 객체 정보를 이용해 몽고디비 연결 및 캐싱
+ * @param {Connection} connection 
+ * @param {express.Express} app 
+ * @param {Function} callback 
+ */
 exports.addConnection = function (connection, app, callback){
     if(!app.locals.dbConnections){
         app.locals.dbConnections = [];
