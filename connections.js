@@ -41,6 +41,12 @@ exports.addConnection = function (connection, app, callback){
     });
 };
 
+/**
+ * 
+ * @param {Connection} connection 
+ * @param {express.Express} app 
+ * @returns 
+ */
 exports.removeConnection = function (connection, app){
     if(!app.locals.dbConnections){
         app.locals.dbConnections = [];
