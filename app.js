@@ -1,52 +1,58 @@
-var express = require('express');
-var path = require('path');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-var handlebars = require('express-handlebars');
-var nconf = require('nconf');
-var session = require('express-session');
-var async = require('async');
-var moment = require('moment');
-var fs = require('fs');
+/////////////////////////////////////////////////////////////////////
+// node, express, mongodb, nedb
+/////////////////////////////////////////////////////////////////////
 
-// Define routes
-var indexRoute = require('./routes/index');
-var apiRoute = require('./routes/api');
-var usersRoute = require('./routes/users');
-var configRoute = require('./routes/config');
-var docRoute = require('./routes/document');
-var dbRoute = require('./routes/database');
-var collectionRoute = require('./routes/collection');
+const express           = require('express');
+const path              = require('path');
+const morgan            = require('morgan');
+const cookieParser      = require('cookie-parser');
+const bodyParser        = require('body-parser');
+const handlebars        = require('express-handlebars');
+const nconf             = require('nconf');
+const session           = require('express-session');
+const async             = require('async');
+const moment            = require('moment');
+const fs                = require('fs');
+
+const indexRoute        = require('./routes/index');
+const apiRoute          = require('./routes/api');
+const usersRoute        = require('./routes/users');
+const configRoute       = require('./routes/config');
+const docRoute          = require('./routes/document');
+const dbRoute           = require('./routes/database');
+const collectionRoute   = require('./routes/collection');
 
 // set the base dir to __dirname when running as webapp and electron path if running as electron app
-var dir_base = __dirname;
+const dir_base = __dirname;
 if(process.versions['electron']){
     dir_base = path.join(process.resourcesPath.toString(), 'app/');
 }
 
-var app = express();
+const app = express(); // 앱 생성
 
-// setup the translation
-var i18n = new (require('i18n-2'))({
+const i18n = new ( require('i18n-2') )({
     locales: ['en', 'de', 'es', 'ru', 'zh-cn', 'it'],
-    directory: path.join(dir_base, 'locales/')
+    directory: path.join( dir_base, 'locales/' )
 });
 
-// setup DB for server stats
-var Datastore = require('nedb');
-var db = new Datastore({filename: path.join(dir_base, 'data/dbStats.db'), autoload: true});
+// nedb for server stats
+const Datastore = require('nedb');
+const db = new Datastore({filename: path.join(dir_base, 'data/dbStats.db'), autoload: true});
 
 // view engine setup
-app.set('views', path.join(dir_base, 'views/'));
-app.engine('hbs', handlebars({extname: 'hbs', defaultLayout: path.join(dir_base, 'views/layouts/layout.hbs')}));
+//app.set('views', path.join(dir_base, 'views/'));
+app.engine('hbs', handlebars({
+    extname: 'hbs', 
+    defaultLayout: path.join(dir_base, 'views/layouts/layout.hbs')
+}));
 app.set('view engine', 'hbs');
+app.set('views', path.join(dir_base, 'views/'));
 
 // Check existence of backups dir, create if nothing
 if(!fs.existsSync(path.join(dir_base, 'backups'))) fs.mkdirSync(path.join(dir_base, 'backups'));
 
 // helpers for the handlebars templating platform
-handlebars = handlebars.create({
+const hbr = handlebars.create({
     helpers: {
         __: function (value){
             return i18n.__(value);
@@ -87,15 +93,15 @@ handlebars = handlebars.create({
 
 // setup nconf to read in the file
 // create config dir and blank files if they dont exist
-var dir_config = path.join(dir_base, 'config/');
-var config_connections = path.join(dir_config, 'config.json');
-var config_app = path.join(dir_config, 'app.json');
+var dir_config          = path.join(dir_base, 'config/');
+var config_connections  = path.join(dir_config, 'config.json');
+var config_app          = path.join(dir_config, 'app.json');
 
 // Check existence of config dir and config files, create if nothing
 if(!fs.existsSync(dir_config)) fs.mkdirSync(dir_config);
 
 // The base of the /config/app.json file, will check against environment values
-var configApp = {
+let configApp = {
     app: {}
 };
 if(process.env.HOST) configApp.app.host = process.env.HOST;
@@ -108,7 +114,7 @@ if(process.env.MONITORING) configApp.app.monitoring = process.env.MONITORING;
 if(!fs.existsSync(config_app)) fs.writeFileSync(config_app, JSON.stringify(configApp));
 
 // Check the env for a connection to initiate
-var configConnection = {
+let configConnection = {
     connections: {}
 };
 if(process.env.CONN_NAME && process.env.DB_HOST) {
@@ -170,7 +176,7 @@ if(nconf.stores.app.get('app:context') !== undefined){
     app_context = '/' + nconf.stores.app.get('app:context');
 }
 
-app.use(logger('dev'));
+app.use(morgan('dev'));
 app.use(bodyParser.json({limit: '16mb'}));
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
@@ -195,7 +201,7 @@ app.use(app_context + '/favicon.ico', express.static(path.join(dir_base, 'public
 // Make stuff accessible to our router
 app.use(function (req, res, next){
     req.nconf = nconf.stores;
-    req.handlebars = handlebars;
+    req.handlebars = hbr;
     req.i18n = i18n;
     req.app_context = app_context;
     req.db = db;
