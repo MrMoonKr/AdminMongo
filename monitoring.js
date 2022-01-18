@@ -1,3 +1,6 @@
+const nedb = require('nedb');
+
+
 var _ = require('lodash');
 
 // Removes old monitoring data. We only want basic monitoring with the last 100 events.
@@ -36,35 +39,46 @@ var currDocCounts = {
     updated: 0
 };
 
-exports.serverMonitoring = function (monitoringDB, dbs){
-    if(dbs){
-        Object.keys(dbs).forEach(function(key){
-            var adminDb = dbs[key].native.admin();
-            adminDb.serverStatus(function(err, info){
+/**
+ * 
+ * @param {nedb.Datastore} monitoringDB 
+ * @param {*} dbs 
+ */
+exports.serverMonitoring = function ( monitoringDB, dbs ) 
+{
+    if ( dbs ) 
+    {
+        Object.keys( dbs ).forEach( function( key ) 
+        {
+            const client    = dbs[key].native; // MongoClient
+            const adminDb   = dbs[key].native.admin();
+            adminDb.serverStatus( function( err, info ) {
                 // if we got data back from db. If not, normally related to permissions
                 var dataRetrieved = false;
-                if(info){
+                if ( info )
+                {
                     dataRetrieved = true;
                 }
 
                 // doc numbers. We get the last interval number and subtract the current to get the diff
-                var docCounts = '';
-                var activeClients = '';
-                var pid = 'N/A';
-                var version = 'N/A';
-                var uptime = 'N/A';
-                var connections = '';
-                var memory = '';
+                var docCounts       = '';
+                var activeClients   = '';
+                var pid             = 'N/A';
+                var version         = 'N/A';
+                var uptime          = 'N/A';
+                var connections     = '';
+                var memory          = '';
 
                 // set the values if we can get them
-                if(info){
-                    docCounts = info.metrics ? getDocCounts(currDocCounts, info.metrics.document) : 0;
-                    activeClients = info.globalLock ? info.globalLock.activeClients : 0;
-                    pid = info.pid;
-                    version = info.version;
-                    uptime = info.uptime;
-                    connections = info.connections;
-                    memory = info.mem;
+                if ( info )
+                {
+                    docCounts       = info.metrics ? getDocCounts(currDocCounts, info.metrics.document) : 0;
+                    activeClients   = info.globalLock ? info.globalLock.activeClients : 0;
+                    pid             = info.pid;
+                    version         = info.version;
+                    uptime          = info.uptime;
+                    connections     = info.connections;
+                    memory          = info.mem;
                 }
 
                 var doc = {
@@ -81,16 +95,18 @@ exports.serverMonitoring = function (monitoringDB, dbs){
                 };
 
                 // insert the data into local DB
-                monitoringDB.insert(doc, function (err, newDoc){});
+                monitoringDB.insert( doc, function( err, newDoc ) {
+                    // nothing
+                });
 
                 // clean up old docs
-                serverMonitoringCleanup(monitoringDB, key);
+                serverMonitoringCleanup( monitoringDB, key );
             });
         });
     }
 };
 
-function getDocCounts(currCounts, newCounts){
+function getDocCounts( currCounts, newCounts ) {
     var newDocCounts = {
         queried: 0,
         inserted: 0,

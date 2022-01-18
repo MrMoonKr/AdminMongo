@@ -14,15 +14,18 @@ async function main()
     {
         await client.connect();
 
+        //const adminDB     = client.admin(); // 4.x 에서 없음
+
         const database  = client.db('db');
-        
         const adminDB   = database.admin();
+
         adminDB.serverStatus( ( err, res ) => {
             console.log( res );
         });
     }
-    catch
+    catch ( err )
     {
+        console.log( err );
         await client.close();
     }
 }

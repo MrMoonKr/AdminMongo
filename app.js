@@ -37,7 +37,14 @@ const i18n = new ( require('i18n-2') )({
 
 // nedb for server stats
 const Datastore = require('nedb');
-const db = new Datastore({filename: path.join(dir_base, 'data/dbStats.db'), autoload: true});
+
+/**
+ * 서버상태 저장용 NeDB. '/data/dbStats.db'
+ */
+const nedbStats = new Datastore({
+    filename: path.join(dir_base, 'data/dbStats.db'),
+    autoload: true
+});
 
 // view engine setup
 //app.set('views', path.join(dir_base, 'views/'));
@@ -204,7 +211,7 @@ app.use(function (req, res, next){
     req.handlebars = hbr;
     req.i18n = i18n;
     req.app_context = app_context;
-    req.db = db;
+    req.db = nedbStats;
     next();
 });
 
@@ -269,49 +276,74 @@ app.on('uncaughtException', function(err){
 
 // add the connections to the connection pool
 var connection_list = nconf.stores.connections.get('connections');
-var connPool = require('./connections');
-var monitoring = require('./monitoring');
+var connPool        = require('./connections');
+var monitoring      = require('./monitoring');
 app.locals.dbConnections = null;
 
-async.forEachOf(connection_list, function (value, key, callback){
-    var MongoURI = require('mongo-uri');
-
-    try{
-        MongoURI.parse(value.connection_string);
-        connPool.addConnection({connName: key, connString: value.connection_string, connOptions: value.connection_options}, app, function (err, data){
-            if(err)delete connection_list[key];
+async.forEachOf(
+    connection_list,
+    function ( value, key, callback ) {
+        var MongoURI = require("mongo-uri");
+        try 
+        {
+            MongoURI.parse( value.connection_string );
+            connPool.addConnection(
+                {
+                    connName: key,
+                    connString: value.connection_string,
+                    connOptions: value.connection_options,
+                },
+                app,
+                function ( err, data ) {
+                    if ( err ) delete connection_list[key];
+                    callback();
+                }
+            );
+        } 
+        catch ( err ) 
+        {
             callback();
-        });
-    }catch(err){
-        callback();
-    }
-},
-    function (err){
-        if(err) console.error(err.message);
+        }
+    },
+    function ( err ) {
+        if ( err ) console.error( err.message );
+
         // lift the app
-        app.listen(app_port, app_host, function (){
-            console.log('adminMongo listening on host: http://' + app_host + ':' + app_port + app_context);
+        app.listen( app_port, app_host, function () {
+            console.log(
+                "adminMongo listening on host: http://" +
+                    app_host +
+                    ":" +
+                    app_port +
+                    app_context
+            );
 
             // used for electron to know when express app has started
-            app.emit('startedAdminMongo');
+            app.emit("startedAdminMongo");
 
-            if(nconf.stores.app.get('app:monitoring') !== false){
+            if ( nconf.stores.app.get( "app:monitoring" ) !== false ) {
                 // start the initial monitoring
-                monitoring.serverMonitoring(db, app.locals.dbConnections);
+                monitoring.serverMonitoring( nedbStats, app.locals.dbConnections );
 
                 // Keep firing monitoring every 30 seconds
-                setInterval(function (){
-                    monitoring.serverMonitoring(db, app.locals.dbConnections);
-                }, 30000);
+                setInterval( function () {
+                    monitoring.serverMonitoring( nedbStats, app.locals.dbConnections );
+                }, 30000 );
             }
-        }).on('error', function (err){
-            if(err.code === 'EADDRINUSE'){
-                console.error('Error starting adminMongo: Port ' + app_port + ' already in use, choose another');
-            }else{
-                console.error('Error starting adminMongo: ' + err);
-                app.emit('errorAdminMongo');
+        }).on( "error", function ( err ) {
+            if ( err.code === "EADDRINUSE" ) {
+                console.error(
+                    "Error starting adminMongo: Port " +
+                        app_port +
+                        " already in use, choose another"
+                );
+            } 
+            else {
+                console.error("Error starting adminMongo: " + err);
+                app.emit("errorAdminMongo");
             }
         });
-    });
+    }
+);
 
 module.exports = app;

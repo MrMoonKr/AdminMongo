@@ -1,6 +1,5 @@
-const express = require( 'express' );
-
-var MongoClient = require('mongodb').MongoClient;
+const express       = require( 'express' );
+const MongoClient   = require('mongodb').MongoClient;
 
 /**
  * 연결 개체 타입 정의
@@ -16,27 +15,33 @@ var MongoClient = require('mongodb').MongoClient;
  * @param {express.Express} app 
  * @param {Function} callback 
  */
-exports.addConnection = function (connection, app, callback){
-    if(!app.locals.dbConnections){
+exports.addConnection = function ( connection, app, callback ) {
+    if ( !app.locals.dbConnections ) // 저장소 생성
+    {
         app.locals.dbConnections = [];
     }
 
-    if(!connection.connOptions){
+    if ( !connection.connOptions ) // 기본 옵션 생성
+    {
         connection.connOptions = {};
     }
 
-    MongoClient.connect(connection.connString, connection.connOptions, function(err, database){
-        if(err){
-            callback(err, null);
-        }else{
-            var dbObj = {};
-            dbObj.native = database;
-            dbObj.connString = connection.connString;
-            dbObj.connOptions = connection.connOptions;
+    MongoClient.connect( connection.connString, connection.connOptions, function( err, client ) {
+
+        if ( err )
+        {
+            callback( err, null );
+        }
+        else
+        {
+            let dbObj = {};
+            dbObj.native        = client;
+            dbObj.connString    = connection.connString;
+            dbObj.connOptions   = connection.connOptions;
 
             app.locals.dbConnections[connection.connName] = null;
             app.locals.dbConnections[connection.connName] = dbObj;
-            callback(null, null);
+            callback( null, dbObj );
         }
     });
 };
