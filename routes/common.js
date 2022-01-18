@@ -27,7 +27,8 @@ exports.checkLogin = function(req, res, next){
 
 // gets some db stats
 exports.get_db_status = function (mongo_db, cb){
-    var adminDb = mongo_db.admin();
+    //var adminDb = mongo_db.admin();
+    var adminDb = mongo_db.db().admin();
     adminDb.serverStatus(function (err, status){
         if(err){
             cb('Error', null);
@@ -54,7 +55,8 @@ exports.get_db_stats = function (mongo_db, db_name, cb){
 
     // if at connection level we loop db's and collections
     if(db_name == null){
-        var adminDb = mongo_db.admin();
+        //var adminDb = mongo_db.admin();
+        var adminDb = mongo_db.db().admin();
         adminDb.listDatabases(function (err, db_list){
             if(err){
                 cb('User is not authorised', null);
@@ -118,7 +120,8 @@ exports.get_db_stats = function (mongo_db, db_name, cb){
 // gets the Databases
 exports.get_db_list = function (uri, mongo_db, cb){
     var async = require('async');
-    var adminDb = mongo_db.admin();
+    //var adminDb = mongo_db.admin();
+    var adminDb = mongo_db.db().admin();
     var db_arr = [];
 
     // if a DB is not specified in the Conn string we try get a list
@@ -201,7 +204,8 @@ exports.get_sidebar_list = function (mongo_db, db_name, cb){
 
     // if no DB is specified, we get all DBs and collections
     if(db_name == null){
-        var adminDb = mongo_db.admin();
+        //var adminDb = mongo_db.admin();
+        var adminDb = mongo_db.db().admin();
         adminDb.listDatabases(function (err, db_list){
             if(db_list){
                 async.forEachOf(db_list.databases, function (value, key, callback){

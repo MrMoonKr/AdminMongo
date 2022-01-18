@@ -5,7 +5,13 @@ var _ = require('lodash');
 
 // Removes old monitoring data. We only want basic monitoring with the last 100 events.
 // We keep last 80 and remove the rest to be sure.
-function serverMonitoringCleanup(db, conn){
+
+/**
+ * 
+ * @param {nedb.Datastore} db 
+ * @param {*} conn 
+ */
+function serverMonitoringCleanup( db, conn ) {
     var exclude = {
         eventDate: 0,
         pid: 0,
@@ -21,13 +27,17 @@ function serverMonitoringCleanup(db, conn){
 
     var retainedRecords = (24 * 60) * 60 / 30; // 24 hours worth of 30 sec blocks (data refresh interval)
 
-    db.find({connectionName: conn}).skip(retainedRecords).sort({eventDate: -1}).projection(exclude).exec(function (err, serverEvents){
+    db.find( { connectionName: conn })
+      .skip( retainedRecords )
+      .sort( { eventDate: -1} )
+      .projection( exclude )
+      .exec( function ( err, serverEvents ) {
         var idArray = [];
-        _.each(serverEvents, function(value, key){
+        _.each( serverEvents, function( value, key ) {
             idArray.push(value._id);
-        });
+        } );
 
-        db.remove({'_id': {'$in': idArray}}, {multi: true}, function (err, newDoc){});
+        db.remove( {'_id': {'$in': idArray}}, {multi: true}, function (err, newDoc){} );
     });
 };
 
@@ -51,7 +61,9 @@ exports.serverMonitoring = function ( monitoringDB, dbs )
         Object.keys( dbs ).forEach( function( key ) 
         {
             const client    = dbs[key].native; // MongoClient
-            const adminDb   = dbs[key].native.admin();
+            //const adminDb   = dbs[key].native.admin();
+            const database  = client.db();
+            const adminDb   = database.admin();
             adminDb.serverStatus( function( err, info ) {
                 // if we got data back from db. If not, normally related to permissions
                 var dataRetrieved = false;
