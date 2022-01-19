@@ -22,6 +22,10 @@ async function main()
         adminDB.serverStatus( ( err, res ) => {
             console.log( res );
         });
+
+        adminDB.listDatabases( ( err, res ) => {
+            console.log( res );
+        });
     }
     catch ( err )
     {
