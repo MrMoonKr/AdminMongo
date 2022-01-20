@@ -1,19 +1,14 @@
 const express       = require( 'express' );
 const MongoClient   = require('mongodb').MongoClient;
 
-/**
- * 연결 개체 타입 정의
- * @typedef {Object} Connection
- * @property {string} connName 
- * @property {string} connString 
- * @property {Object} connOptions 
- */
+const typedefs      = require('./typedefs');
+
 
 /**
  * 연결 객체 정보를 이용해 몽고디비 연결 및 캐싱
- * @param {Connection} connection 
+ * @param {app_connection} connection 
  * @param {express.Express} app 
- * @param {Function} callback 
+ * @param {app_callback} callback 
  */
 exports.addConnection = function ( connection, app, callback ) {
     if ( !app.locals.dbConnections ) // 저장소 생성
@@ -48,18 +43,23 @@ exports.addConnection = function ( connection, app, callback ) {
 
 /**
  * 
- * @param {Connection} connection 
+ * @param {string} connection 
  * @param {express.Express} app 
- * @returns 
+ * @returns {void}
  */
-exports.removeConnection = function (connection, app){
-    if(!app.locals.dbConnections){
+exports.removeConnection = function ( connection, app ) {
+    if ( !app.locals.dbConnections ) {
         app.locals.dbConnections = [];
     }
 
-    try{
+    try
+    {
         app.locals.dbConnections[connection].native.close();
-    }catch(e){}
+    }
+    catch ( err )
+    {
+        //
+    }
 
     delete app.locals.dbConnections[connection];
     return;

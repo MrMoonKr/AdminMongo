@@ -1,21 +1,22 @@
-var express = require('express');
-var router = express.Router();
-var _ = require('lodash');
-var common = require('./common');
+const express       = require('express');
+const router        = express.Router();
+const _             = require('lodash');
+const mongodb       = require('mongodb');
+const common        = require('./common');
 
 // runs on all routes and checks password if one is setup
-router.all('/api/*', common.checkLogin, function (req, res, next){
+router.all( '/api/*', common.checkLogin, function (req, res, next){
     next();
 });
 
 // pagination API
-router.post('/api/:conn/:db/:coll/:page', function (req, res, next){
+router.post( '/api/:conn/:db/:coll/:page', function ( req, res, next ) {
     var connection_list = req.app.locals.dbConnections;
     var ejson = require('mongodb-extended-json');
     var docs_per_page = parseInt(req.body.docsPerPage) !== undefined ? parseInt(req.body.docsPerPage) : 5;
 
     // Check for existance of connection
-    if(connection_list[req.params.conn] === undefined){
+    if ( connection_list[req.params.conn] === undefined ) {
         res.status(400).json({'msg': req.i18n.__('Invalid connection name')});
     }
 
@@ -25,6 +26,7 @@ router.post('/api/:conn/:db/:coll/:page', function (req, res, next){
     }
 
     // Get DB's form pool
+    /** @type {mongodb.Db} */
     var mongo_db = connection_list[req.params.conn].native.db(req.params.db);
 
     var page_size = docs_per_page;
@@ -54,29 +56,33 @@ router.post('/api/:conn/:db/:coll/:page', function (req, res, next){
         }
     }
 
-    mongo_db.collection(req.params.coll).find(query_obj, {skip: skip, limit: limit}).toArray(function (err, result){
-        if(err){
+    mongo_db.collection( req.params.coll ).find( query_obj, { skip: skip, limit: limit } ).toArray( function ( err, result ) {
+        if ( err )
+        {
             console.error(err);
             res.status(500).json(err);
-        }else{
-            mongo_db.collection(req.params.coll).find({}, {skip: skip, limit: limit}).toArray(function (err, simpleSearchFields){
+        }
+        else
+        {
+            mongo_db.collection( req.params.coll ).find( {}, { skip: skip, limit: limit } ).toArray( function ( err, simpleSearchFields ) {
                 // get field names/keys of the Documents in collection
                 var fields = [];
-                for(var i = 0; i < simpleSearchFields.length; i++){
+                for ( var i = 0; i < simpleSearchFields.length ; i++ ) 
+                {
                     var doc = simpleSearchFields[i];
 
-                    for(var key in doc){
-                        if(key === '__v')continue;
-                        fields.push(key);
+                    for ( var key in doc ) {
+                        if ( key === '__v' )continue;
+                        fields.push( key );
                     }
                 };
 
-                fields = fields.filter(function (item, pos){
-                    return fields.indexOf(item) === pos;
+                fields = fields.filter( function ( item, pos ) {
+                    return fields.indexOf( item ) === pos;
                 });
 
                 // get total num docs in query
-                mongo_db.collection(req.params.coll).count(query_obj, function (err, doc_count){
+                mongo_db.collection( req.params.coll ).count( query_obj, function ( err, doc_count ) {
                     var return_data = {
                         data: result,
                         fields: fields,
@@ -87,7 +93,7 @@ router.post('/api/:conn/:db/:coll/:page', function (req, res, next){
                         validQuery: validQuery,
                         queryMessage: queryMessage
                     };
-                    res.status(200).json(return_data);
+                    res.status(200).json( return_data );
                 });
             });
         }
@@ -95,7 +101,7 @@ router.post('/api/:conn/:db/:coll/:page', function (req, res, next){
 });
 
 // Gets monitoring data
-router.get('/api/monitoring/:conn', function (req, res, next){
+router.get( '/api/monitoring/:conn', function (req, res, next){
     var dayBack = new Date();
     dayBack.setDate(dayBack.getDate() - 1);
 

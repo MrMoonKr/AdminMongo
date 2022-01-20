@@ -84,7 +84,7 @@ exports.serverMonitoring = function ( monitoringDB, dbs )
                 // set the values if we can get them
                 if ( info )
                 {
-                    docCounts       = info.metrics ? getDocCounts(currDocCounts, info.metrics.document) : 0;
+                    docCounts       = info.metrics ? getDocCounts( currDocCounts, info.metrics.document ) : 0;
                     activeClients   = info.globalLock ? info.globalLock.activeClients : 0;
                     pid             = info.pid;
                     version         = info.version;
@@ -127,35 +127,47 @@ function getDocCounts( currCounts, newCounts ) {
     };
 
     // queried
-    if(currCounts.queried === 0){
-        currCounts.queried = newCounts.returned;
-    }else{
-        newDocCounts.queried = newCounts.returned - currCounts.queried;
-        currCounts.queried = newCounts.returned;
+    if ( currCounts.queried === 0 )
+    {
+        currCounts.queried      = newCounts.returned;
+    }
+    else
+    {
+        newDocCounts.queried    = newCounts.returned - currCounts.queried;
+        currCounts.queried      = newCounts.returned;
     }
 
     // inserts
-    if(currCounts.inserted === 0){
-        currCounts.inserted = newCounts.inserted;
-    }else{
-        newDocCounts.inserted = newCounts.inserted - currCounts.inserted;
-        currCounts.inserted = newCounts.inserted;
+    if ( currCounts.inserted === 0 )
+    {
+        currCounts.inserted     = newCounts.inserted;
+    }
+    else
+    {
+        newDocCounts.inserted   = newCounts.inserted - currCounts.inserted;
+        currCounts.inserted     = newCounts.inserted;
     }
 
     // deleted
-    if(currCounts.deleted === 0){
-        currCounts.deleted = newCounts.deleted;
-    }else{
-        newDocCounts.deleted = newCounts.deleted - currCounts.deleted;
-        currCounts.deleted = newCounts.deleted;
+    if ( currCounts.deleted === 0 )
+    {
+        currCounts.deleted      = newCounts.deleted;
+    }
+    else
+    {
+        newDocCounts.deleted    = newCounts.deleted - currCounts.deleted;
+        currCounts.deleted      = newCounts.deleted;
     }
 
     // updated
-    if(currCounts.updated === 0){
-        currCounts.updated = newCounts.updated;
-    }else{
-        newDocCounts.updated = newCounts.updated - currCounts.updated;
-        currCounts.updated = newCounts.updated;
+    if ( currCounts.updated === 0 )
+    {
+        currCounts.updated      = newCounts.updated;
+    }
+    else
+    {
+        newDocCounts.updated    = newCounts.updated - currCounts.updated;
+        currCounts.updated      = newCounts.updated;
     }
 
     return newDocCounts;

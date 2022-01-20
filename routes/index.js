@@ -82,10 +82,10 @@ router.post('/app/login_action', function (req, res, next){
 });
 
 // Show/manage connections
-router.get('/app/connection_list', function (req, res, next){
+router.get( '/app/connection_list', function ( req, res, next ) {
     var connection_list = req.nconf.connections.get('connections');
 
-    res.render('connections', {
+    res.render( 'connections', {
         message: '',
         editor: true,
         connection_list: common.order_object(connection_list),

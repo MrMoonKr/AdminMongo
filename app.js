@@ -183,110 +183,117 @@ if(nconf.stores.app.get('app:context') !== undefined){
     app_context = '/' + nconf.stores.app.get('app:context');
 }
 
-app.use(morgan('dev'));
-app.use(bodyParser.json({limit: '16mb'}));
-app.use(bodyParser.urlencoded({extended: false}));
-app.use(cookieParser());
+/////////////////////////////////////////////////////////////////////
+// express middleware
+/////////////////////////////////////////////////////////////////////
+
+app.use( morgan('dev') );
+app.use( bodyParser.json({limit: '16mb'}));
+app.use( bodyParser.urlencoded({extended: false}));
+app.use( cookieParser());
 
 // setup session
-app.use(session({
+app.use( session( {
     secret: '858SGTUyX8w1L6JNm1m93Cvm8uX1QX2D',
     resave: true,
     saveUninitialized: true
-}));
+} ) );
 
 // front-end modules loaded from NPM
-app.use(app_context + '/static', express.static(path.join(dir_base, 'public/')));
-app.use(app_context + '/font-awesome', express.static(path.join(dir_base, 'node_modules/font-awesome/')));
-app.use(app_context + '/jquery', express.static(path.join(dir_base, 'node_modules/jquery/dist/')));
-app.use(app_context + '/bootstrap', express.static(path.join(dir_base, 'node_modules/bootstrap/dist/')));
-app.use(app_context + '/css', express.static(path.join(dir_base, 'public/css')));
-app.use(app_context + '/fonts', express.static(path.join(dir_base, 'public/fonts')));
-app.use(app_context + '/js', express.static(path.join(dir_base, 'public/js')));
-app.use(app_context + '/favicon.ico', express.static(path.join(dir_base, 'public/favicon.ico')));
+app.use( app_context + '/static',       express.static( path.join( dir_base, 'public/' ) ) );
+app.use( app_context + '/font-awesome', express.static( path.join( dir_base, 'node_modules/font-awesome/' ) ) );
+app.use( app_context + '/jquery',       express.static( path.join( dir_base, 'node_modules/jquery/dist/') ) );
+app.use( app_context + '/bootstrap',    express.static( path.join( dir_base, 'node_modules/bootstrap/dist/') ) );
+app.use( app_context + '/css',          express.static( path.join( dir_base, 'public/css' ) ) );
+app.use( app_context + '/fonts',        express.static( path.join( dir_base, 'public/fonts' ) ) );
+app.use( app_context + '/js',           express.static( path.join( dir_base, 'public/js' ) ) );
+app.use( app_context + '/favicon.ico',  express.static( path.join( dir_base, 'public/favicon.ico' ) ) );
 
 // Make stuff accessible to our router
-app.use(function (req, res, next){
-    req.nconf = nconf.stores;
-    req.handlebars = hbr;
-    req.i18n = i18n;
+app.use( function ( req, res, next ) {
+    req.nconf       = nconf.stores;
+    req.handlebars  = hbr;
+    req.i18n        = i18n;
     req.app_context = app_context;
-    req.db = nedbStats;
+    req.db          = nedbStats;
     next();
-});
+} );
 
 // add context to route if required
-if(app_context !== ''){
-    app.use(app_context, apiRoute);
-    app.use(app_context, usersRoute);
-    app.use(app_context, configRoute);
-    app.use(app_context, docRoute);
-    app.use(app_context, dbRoute);
-    app.use(app_context, collectionRoute);
-    app.use(app_context, indexRoute);
-}else{
-    app.use('/', apiRoute);
-    app.use('/', usersRoute);
-    app.use('/', configRoute);
-    app.use('/', docRoute);
-    app.use('/', dbRoute);
-    app.use('/', collectionRoute);
-    app.use('/', indexRoute);
+if ( app_context !== '' )
+{
+    app.use( app_context, apiRoute );
+    app.use( app_context, usersRoute );
+    app.use( app_context, configRoute );
+    app.use( app_context, docRoute );
+    app.use( app_context, dbRoute );
+    app.use( app_context, collectionRoute );
+    app.use( app_context, indexRoute );
+}
+else
+{
+    app.use( '/', apiRoute );
+    app.use( '/', usersRoute );
+    app.use( '/', configRoute );
+    app.use( '/', docRoute );
+    app.use( '/', dbRoute );
+    app.use( '/', collectionRoute );
+    app.use( '/', indexRoute );
 }
 
 // catch 404 and forward to error handler
-app.use(function (req, res, next){
-    var err = new Error('Not Found');
-    err.status = 404;
-    next(err);
+app.use( function ( req, res, next ) {
+    var err     = new Error( 'Not Found' );
+    err.status  = 404;
+    next( err );
 });
 
 // === Error handlers ===
 
 // development error handler
 // will print stacktrace
-if(app.get('env') === 'development'){
-    app.use(function (err, req, res, next){
-        console.log(err.stack);
-        res.status(err.status || 500);
-        res.render('error', {
+if ( app.get('env') === 'development' )
+{
+    app.use( function ( err, req, res, next ) {
+        console.log( err.stack );
+        res.status( err.status || 500 );
+        res.render( 'error', {
             message: err.message,
-            error: err,
+            error:   err,
             helpers: handlebars.helpers
-        });
-    });
+        } );
+    } );
 }
 
 // production error handler
 // no stacktraces leaked to user
-app.use(function (err, req, res, next){
-    console.log(err.stack);
-    res.status(err.status || 500);
-    res.render('error', {
+app.use( function ( err, req, res, next ) {
+    console.log( err.stack );
+    res.status( err.status || 500 );
+    res.render( 'error', {
         message: err.message,
-        error: {},
+        error:   {},
         helpers: handlebars.helpers
-    });
-});
+    } );
+} );
 
-app.on('uncaughtException', function(err){
-    console.error(err.stack);
+app.on( 'uncaughtException', function( err ) {
+    console.error( err.stack );
     process.exit();
-});
+} );
 
 // add the connections to the connection pool
-var connection_list = nconf.stores.connections.get('connections');
-var connPool        = require('./connections');
-var monitoring      = require('./monitoring');
+var connection_list     = nconf.stores.connections.get('connections');
+var connPool            = require('./connections');
+var monitoring          = require('./monitoring');
 app.locals.dbConnections = null;
 
-async.forEachOf(
-    connection_list,
+async.forEachOf( connection_list,
     function ( value, key, callback ) {
-        var MongoURI = require("mongo-uri");
+        const MongoURI  = require('mongo-uri');
         try 
         {
-            MongoURI.parse( value.connection_string );
+            const uri = MongoURI.parse( value.connection_string );
             connPool.addConnection(
                 {
                     connName: key,
@@ -317,6 +324,9 @@ async.forEachOf(
                     app_port +
                     app_context
             );
+
+            console.log( `[정보] 실행환경 : ${app.get('env')} 모드`);
+            console.log( `[정보] 종료하려면 Ctrl + C 누르세요`);
 
             // used for electron to know when express app has started
             app.emit("startedAdminMongo");
