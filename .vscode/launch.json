@@ -9,7 +9,7 @@
             "request": "launch",
             "type": "pwa-chrome",
             "url": "http://localhost:1234",
-            "webRoot": "${workspaceFolder}"
+            "webRoot": "${workspaceFolder}/public"
         },
         {
             "type": "pwa-node",
