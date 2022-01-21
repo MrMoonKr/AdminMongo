@@ -160,40 +160,43 @@ $(document).ready(function(){
         }
     });
 
-    $(document).on('click', '#coll_create', function(){
-        if($('#new_coll_name').val() !== ''){
-            $.ajax({
+    // 컬렉션 생성 버튼 이벤트
+    $(document).on('click', '#coll_create', function() {
+        if ( $('#new_coll_name').val() !== '' ) {
+            $.ajax( {
                 method: 'POST',
                 url: $('#app_context').val() + '/collection/' + $('#conn_name').val() + '/' + $('#db_name').val() + '/coll_create',
                 data: {'collection_name': $('#new_coll_name').val()}
             })
-            .done(function(data){
+            .done( function( data ) {
                 $('#del_coll_name').append('<option>' + $('#new_coll_name').val() + '</option>');
                 $('#new_coll_name').val('');
-                show_notification(data.msg, 'success');
+                show_notification( data.msg, 'success' );
             })
-            .fail(function(data){
-                show_notification(data.responseJSON.msg, 'danger');
+            .fail( function( data ) {
+                show_notification( data.responseJSON.msg, 'danger');
             });
-        }else{
+        }
+        else {
             show_notification('Please enter a collection name', 'danger');
         }
     });
 
-    $(document).on('click', '#coll_delete', function(){
-        if(confirm('WARNING: Are you sure you want to delete this collection and all documents?') === true){
-            $.ajax({
+    // 컬렉션 삭제 버튼 이벤트
+    $(document).on('click', '#coll_delete', function() {
+        if ( confirm( 'WARNING: Are you sure you want to delete this collection and all documents?' ) === true ) {
+            $.ajax( {
                 method: 'POST',
                 url: $('#app_context').val() + '/collection/' + $('#conn_name').val() + '/' + $('#db_name').val() + '/coll_delete',
                 data: {'collection_name': $('#del_coll_name option:selected').text()}
             })
-            .done(function(data){
+            .done( function( data ) {
                 $("#del_coll_name option:contains('" + data.coll_name + "')").remove();
-                $('#del_coll_name').val($('#del_coll_name option:first').val());
-                show_notification(data.msg, 'success');
+                $('#del_coll_name').val( $('#del_coll_name option:first').val() );
+                show_notification( data.msg, 'success' );
             })
-            .fail(function(data){
-                show_notification(data.responseJSON.msg, 'danger');
+            .fail( function( data ) {
+                show_notification( data.responseJSON.msg, 'danger' );
             });
         }
     });
@@ -647,18 +650,22 @@ function dropIndex(index_index){
     });
 }
 
-// show notification popup
-function show_notification(msg, type, reload_page, timeout){
+/**
+ * show notification popup. 페이지 아래쪽에 토스트메시지 출력
+ * @param {string} msg 
+ * @param {string} type 
+ * @param {boolean} reload_page 
+ * @param {number} timeout 
+ */
+function show_notification( msg, type, reload_page, timeout ) {
     // defaults to false
     reload_page = reload_page || false;
-    timeout = timeout || 3000;
+    timeout     = timeout || 3000;
 
     $('#notify_message').removeClass();
     $('#notify_message').addClass('notify_message-' + type);
     $('#notify_message').html(msg);
-    $('#notify_message').slideDown(600).delay(timeout).slideUp(600, function(){
-        if(reload_page === true){
-            location.reload();
-        }
+    $('#notify_message').slideDown(600).delay(timeout).slideUp(600, function() {
+        if ( reload_page === true ) { location.reload(); }
     });
 }

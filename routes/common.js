@@ -6,6 +6,7 @@ const express       = require('express');
 const mongodb       = require('mongodb');
 const MongoUri      = require('mongo-uri');
 
+const typedefs      = require('../typedefs');
 
 /**
  * 관리자 계정 로그인 체크. 설정파일에 password 추가시 동작
@@ -86,18 +87,17 @@ exports.get_backups = function( cb ) {
  
 /**
  * gets the db stats
- * @param {mongodb.MongoClient} mongoClient 
+ * @param {mongodb.MongoClient} mongo_client 
  * @param {string} db_name 
- * @param {ErrResCallback} cb 
+ * @param {app_callback} cb 
  */
-exports.get_db_stats = function ( mongoClient, db_name, cb ) {
+exports.get_db_stats = function ( mongo_client, db_name, cb ) {
     var async = require('async');
     var db_obj = {};
 
     if ( db_name == null ) // if at connection level we loop db's and collections
     {
-        //var adminDB = mongo_db.admin();
-        var adminDB = mongoClient.db().admin();
+        const adminDB = mongo_client.db().admin();
         adminDB.listDatabases( function ( err, db_list ) {
             if ( err ) {
                 cb( 'User is not authorised', null );
@@ -110,14 +110,14 @@ exports.get_db_stats = function ( mongoClient, db_name, cb ) {
                     function ( value, key, callback ) {
                         exports.order_object( db_list.databases );
                         var skipped_dbs = ['null', 'admin', 'local'];
-                        if ( skipped_dbs.indexOf(value.name) === -1 )
+                        if ( skipped_dbs.indexOf( value.name ) === -1 )
                         {
                             var tempDBName = value.name;
-                            mongoClient.db( tempDBName ).listCollections().toArray( function ( err, coll_list ) {
+                            mongo_client.db( tempDBName ).listCollections().toArray( function ( err, coll_list ) {
                                 var coll_obj = {};
                                 async.forEachOf( exports.cleanCollections( coll_list ),
                                     function ( value, key, callback ) {
-                                        mongoClient.db(tempDBName).collection(value).stats( function ( err, coll_stat ) {
+                                        mongo_client.db( tempDBName ).collection( value ).stats( function ( err, coll_stat ) {
                                             coll_obj[value] = { 
                                                 Storage: coll_stat.size,
                                                 Documents: coll_stat.count
@@ -158,10 +158,10 @@ exports.get_db_stats = function ( mongoClient, db_name, cb ) {
     }
     else
     {
-        mongoClient.db(db_name).listCollections().toArray(function (err, coll_list){
+        mongo_client.db(db_name).listCollections().toArray(function (err, coll_list){
             var coll_obj = {};
             async.forEachOf(exports.cleanCollections(coll_list), function (value, key, callback){
-                mongoClient.db(db_name).collection(value).stats(function (err, coll_stat){
+                mongo_client.db(db_name).collection(value).stats(function (err, coll_stat){
                     coll_obj[value] = {
                         Storage: coll_stat ? coll_stat.size : 0,
                         Documents: coll_stat ? coll_stat.count : 0
@@ -179,45 +179,19 @@ exports.get_db_stats = function ( mongoClient, db_name, cb ) {
 };
 
 /**
- 
-    function MongoUri() {
-      this.username = null;
-      this.password = null;
-      this.hosts = null;
-      this.ports = null;
-      this.database = null;
-      this.options = null;
-    }
- */
-
-/**
- * MongoDB 접속 URI 파싱 결과 저장 객체.
- * @typedef {Object} MongoURI
- * @property {string} username
- * @property {string} password
- * @property {string} hosts
- * @property {string} ports
- * @property {string} database
- * @property {string} options
- */
-
-/**
- * 데이터베이스 목록 조회하기
- * @param {MongoURI} uri 
+ * 데이터베이스 목록 조회하기. 콜백에게 DB이름목록이 전달된다
+ * @param {app_mongouri} uri 
  * @param {mongodb.MongoClient} mongo_db 
  * @param {ErrResCallback} cb 
  */
 exports.get_db_list = function ( uri, mongo_db, cb ) {
-    var async = require('async');
-    //var adminDb = mongo_db.admin();
-    var adminDB = mongo_db.db().admin();
-    var db_arr = [];
+    const async     = require('async');
+    const adminDB   = mongo_db.db().admin();
+    let db_arr      = [];
 
-    // if a DB is not specified in the Conn string we try get a list
-    if ( uri.database === undefined || uri.database === null )
+    if ( uri.database === undefined || uri.database === null ) // if a DB is not specified in the Conn string we try get a list
     {
-        // try go all admin and get the list of DB's
-        adminDB.listDatabases( function ( err, db_list ) {
+        adminDB.listDatabases( function ( err, db_list ) { // try go all admin and get the list of DB's
             if ( db_list !== undefined ) 
             {
                 async.forEachOf( db_list.databases, 

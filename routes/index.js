@@ -94,7 +94,7 @@ router.get( '/app/connection_list', function ( req, res, next ) {
 });
 
 // Show server monitoring
-router.get('/app/monitoring/:conn/', function (req, res, next){
+router.get( '/app/monitoring/:conn/', function ( req, res, next ) {
     var monitoringMessage = '';
     var monitoringRequired = true;
     if(req.nconf.app.get('app:monitoring') === false){
@@ -111,7 +111,7 @@ router.get('/app/monitoring/:conn/', function (req, res, next){
 });
 
 // The base connection route showing all DB's for connection
-router.get('/app/:conn', function (req, res, next){
+router.get( '/app/:conn', function ( req, res, next ) {
     var connection_list = req.app.locals.dbConnections;
     var MongoURI = require('mongo-uri');
 
@@ -169,31 +169,35 @@ router.get('/app/:conn', function (req, res, next){
 });
 
 // The base route at the DB level showing all collections for DB
-router.get('/app/:conn/:db', function (req, res, next){
+router.get( '/app/:conn/:db', function ( req, res, next ) {
     var connection_list = req.app.locals.dbConnections;
 
     // Check for existance of connection
-    if(connection_list[req.params.conn] === undefined){
-        common.render_error(res, req, req.i18n.__('Invalid connection name'), req.params.conn);
+    if ( connection_list[req.params.conn] === undefined ) {
+        common.render_error( res, req, req.i18n.__('Invalid connection name'), req.params.conn );
         return;
     }
 
     // Validate database name
-    if(req.params.db.indexOf(' ') > -1){
-        common.render_error(res, req, req.i18n.__('Invalid database name'), req.params.conn);
+    if ( req.params.db.indexOf(' ') > -1 ) {
+        common.render_error( res, req, req.i18n.__('Invalid database name'), req.params.conn );
         return;
     }
+
     // Get DB's form pool
-    var mongo_db = connection_list[req.params.conn].native.db(req.params.db);
+    //var mongo_db        = connection_list[req.params.conn].native.db( req.params.db );
+    /** @type {mongodb.MongoClient} */
+    const mongo_client  = connection_list[req.params.conn].native;
+    const mongo_db      = mongo_client.db( req.params.db );
 
     // do DB stuff
-    common.get_db_stats(mongo_db, req.params.db, function (err, db_stats){
-        common.get_sidebar_list(mongo_db, req.params.db, function (err, sidebar_list){
-            mongo_db.command({usersInfo: 1}, function (err, conn_users){
-                mongo_db.listCollections().toArray(function (err, collection_list){
-                    res.render('db', {
+    common.get_db_stats( mongo_client, req.params.db, function ( err, db_stats ) {
+        common.get_sidebar_list( mongo_client, req.params.db, function ( err, sidebar_list ) {
+            mongo_db.command( { usersInfo: 1 }, function ( err, conn_users ) {
+                mongo_db.listCollections().toArray( function ( err, collection_list ) {
+                    res.render( 'db', {
                         conn_name: req.params.conn,
-                        conn_list: common.order_object(connection_list),
+                        conn_list: common.order_object( connection_list ),
                         db_stats: db_stats,
                         conn_users: conn_users,
                         coll_list: common.cleanCollections(collection_list),
@@ -300,14 +304,17 @@ router.get('/app/:conn/:db/:coll/indexes', function ( req, res, next ) {
     }
 
     // Get DB's form pool
-    var mongo_db = connection_list[req.params.conn].native.db(req.params.db);
+    //var mongo_db = connection_list[req.params.conn].native.db(req.params.db);
+    /** @type {mongodb.MongoClient} */
+    const mongo_client  = connection_list[req.params.conn].native;
+    const mongo_db      = mongo_client.db( req.params.db );
 
     // do DB stuff
     mongo_db.listCollections().toArray(function (err, collection_list){
         // clean up the collection list
         collection_list = common.cleanCollections(collection_list);
         mongo_db.collection(req.params.coll).indexes(function (err, coll_indexes){
-            common.get_sidebar_list(mongo_db, req.params.db, function (err, sidebar_list){
+            common.get_sidebar_list(mongo_client, req.params.db, function (err, sidebar_list){
                 if(collection_list.indexOf(req.params.coll) === -1){
                     console.error('No collection found');
                     common.render_error(res, req, 'Database or Collection does not exist', req.params.conn);
@@ -330,11 +337,11 @@ router.get('/app/:conn/:db/:coll/indexes', function ( req, res, next ) {
 });
 
 // New document view
-router.get('/app/:conn/:db/:coll/new', function (req, res, next){
+router.get('/app/:conn/:db/:coll/new', function ( req, res, next ) {
     var connection_list = req.app.locals.dbConnections;
 
     // Check for existance of connection
-    if(connection_list[req.params.conn] === undefined){
+    if ( connection_list[req.params.conn] === undefined ) {
         common.render_error(res, req, req.i18n.__('Invalid connection name'), req.params.conn);
         return;
     }
@@ -346,13 +353,16 @@ router.get('/app/:conn/:db/:coll/new', function (req, res, next){
     }
 
     // Get DB form pool
-    var mongo_db = connection_list[req.params.conn].native.db(req.params.db);
+    //var mongo_db = connection_list[req.params.conn].native.db( req.params.db );
+    /** @type {mongodb.MongoClient} */
+    const mongo_client  = connection_list[req.params.conn].native;
+    const mongo_db      = mongo_client.db( req.params.db );
 
     // do DB stuff
-    mongo_db.listCollections().toArray(function (err, collection_list){
+    mongo_db.listCollections().toArray( function ( err, collection_list ) {
         // clean up the collection list
-        collection_list = common.cleanCollections(collection_list);
-        common.get_sidebar_list(mongo_db, req.params.db, function (err, sidebar_list){
+        collection_list = common.cleanCollections( collection_list );
+        common.get_sidebar_list( mongo_client, req.params.db, function ( err, sidebar_list ) {
             if(collection_list.indexOf(req.params.coll) === -1){
                 console.error('No collection found');
                 common.render_error(res, req, 'Database or Collection does not exist', req.params.conn);

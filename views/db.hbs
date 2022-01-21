@@ -1,4 +1,6 @@
+{{!-- 켈렉션관리 및 사용자관리 --}}
 <div class="col-lg-5">
+    {{!-- 컬렉션관리 --}}
     <h4>{{__ "Collection maintenance"}}</h4>
     <label for="new_coll_name">{{__ "Create collection"}}</label>
     <div class="input-group">
@@ -19,6 +21,7 @@
         </span>	
     </div>
     <div class="formBreak"></div>
+    {{!-- 유저관리 --}}
     <h4>{{__ "Create User"}}</h4>
     <label for="new_username">{{__ "Username"}}</label>
     <input type="text" class="form-control input-sm" id="new_username" placeholder="{{__ "Username"}}"><br/>
@@ -44,12 +47,18 @@
         </div>
     {{/if}}
 </div>
+
+{{!-- 데이터베이스통계 --}}
 <div class="col-lg-7">
+    {{!-- 타이틀 제목 --}}
     <h4>{{__ "Database statistics"}}</h4>
     <div id="collection_chart"></div>
+
     <ul class="list-group">
         {{#each db_stats}}
-            <li class="list-group-item"><i class="fa fa-database"></i>&nbsp;&nbsp; <a href="{{app_context}}/app/{{@root.conn_name}}/{{@key}}">{{@key}}</a></li>
+            <li class="list-group-item">
+                <i class="fa fa-database"></i>&nbsp;&nbsp; <a href="{{app_context}}/app/{{@root.conn_name}}/{{@key}}">{{@key}}</a>
+            </li>
             {{#each this}}  
                 <li class="list-group-item coll_indent">
                     <div class="row">
@@ -70,9 +79,10 @@
             {{/each}}
         {{/each}}
     </ul>
-    <ul class="list-group">
+    {{!-- <h4>데이터베이스목록</h4> --}}
+    {{!-- <ul class="list-group">
         {{#each db_list.databases}}
             <li class="list-group-item"><strong>{{@key}}</strong>: {{this.name}}</li>
         {{/each}}
-    </ul>
+    </ul> --}}
 </div>
