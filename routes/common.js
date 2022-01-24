@@ -23,7 +23,8 @@ exports.checkLogin = function ( req, res, next )
     if ( passwordConf && passwordConf.hasOwnProperty('password') ) 
     {
         // dont require login session for login route
-        if ( req.path === '/app/login' || req.path === '/app/logout' || req.path === '/app/login_action' ) {
+        if ( req.path === '/app/login' || req.path === '/app/logout' || req.path === '/app/login_action' ) 
+        {
             next();
         }
         else
@@ -47,18 +48,10 @@ exports.checkLogin = function ( req, res, next )
 };
 
 /**
- * @callback ErrResCallback 앱레벨 콜백함수 시그너쳐
- * @param {string}} err 에러문자열
- * @param {object} res 결과객체
- * @returns {void}
- */
-
-
-/**
- * Admin.serverStatus() 랩퍼 함수.
- * gets some db stats
+ * Admin.serverStatus() 랩퍼 함수.  
+ * 서버 상태값 조회. gets some db stats
  * @param {mongodb.MongoClient} mongoClient MongoClient
- * @param {ErrResCallback} cb 
+ * @param {app_callback} cb 
  */
 exports.get_db_status = function ( mongoClient, cb ) {
 
@@ -86,14 +79,15 @@ exports.get_backups = function( cb ) {
 };
  
 /**
+ * 각 DB별 DB 크기, DB 도큐먼트수 정보 조회.  
  * gets the db stats
  * @param {mongodb.MongoClient} mongo_client 
  * @param {string} db_name 
  * @param {app_callback} cb 
  */
 exports.get_db_stats = function ( mongo_client, db_name, cb ) {
-    var async = require('async');
-    var db_obj = {};
+    var async   = require('async');
+    var db_obj  = {};
 
     if ( db_name == null ) // if at connection level we loop db's and collections
     {
@@ -158,35 +152,39 @@ exports.get_db_stats = function ( mongo_client, db_name, cb ) {
     }
     else
     {
-        mongo_client.db(db_name).listCollections().toArray(function (err, coll_list){
+        mongo_client.db( db_name ).listCollections().toArray( function ( err, coll_list ) {
             var coll_obj = {};
-            async.forEachOf(exports.cleanCollections(coll_list), function (value, key, callback){
-                mongo_client.db(db_name).collection(value).stats(function (err, coll_stat){
-                    coll_obj[value] = {
-                        Storage: coll_stat ? coll_stat.size : 0,
-                        Documents: coll_stat ? coll_stat.count : 0
-                    };
+            async.forEachOf( exports.cleanCollections( coll_list ), 
+                function ( value, key, callback ) {
+                    mongo_client.db( db_name ).collection( value ).stats( function ( err, coll_stat ) {
+                        coll_obj[value] = {
+                            Storage: coll_stat ? coll_stat.size : 0,
+                            Documents: coll_stat ? coll_stat.count : 0
+                        };
 
-                    callback();
-                });
-            }, function (err){
-                if(err) console.error(err.message);
-                db_obj[db_name] = exports.order_object(coll_obj);
-                cb(null, db_obj);
-            });
+                        callback();
+                    });
+                }, 
+                function ( err ) {
+                    if ( err ) console.error( err.message );
+                    db_obj[db_name] = exports.order_object( coll_obj );
+                    cb( null, db_obj );
+                }
+            );
         });
     }
 };
 
 /**
- * 데이터베이스 목록 조회하기. 콜백에게 DB이름목록이 전달된다
+ * 데이터베이스 목록 조회하기.  
+ * 콜백에게 DB이름목록이 전달된다
  * @param {app_mongouri} uri 
- * @param {mongodb.MongoClient} mongo_db 
+ * @param {mongodb.MongoClient} mongo_client 
  * @param {ErrResCallback} cb 
  */
-exports.get_db_list = function ( uri, mongo_db, cb ) {
+exports.get_db_list = function ( uri, mongo_client, cb ) {
     const async     = require('async');
-    const adminDB   = mongo_db.db().admin();
+    const adminDB   = mongo_client.db().admin();
     let db_arr      = [];
 
     if ( uri.database === undefined || uri.database === null ) // if a DB is not specified in the Conn string we try get a list
@@ -229,27 +227,27 @@ exports.get_db_list = function ( uri, mongo_db, cb ) {
 
 /**
  * 
- * @param {mongodb.Db} mongo 
+ * @param {mongodb.Db} mongo_db 
  * @param {string} collection 
  * @param {*} doc_id 
- * @param {ErrResCallback} cb 
+ * @param {app_callback} cb 
  */
-exports.get_id_type = function ( mongo, collection, doc_id, cb ) {
+exports.get_id_type = function ( mongo_db, collection, doc_id, cb ) {
     if ( doc_id )
     {
         const ObjectId = require('mongodb').ObjectId;
         // if a valid ObjectId we try that, then then try as a string
         if ( ObjectId.isValid( doc_id ) )
         {
-            mongo.collection(collection).findOne({_id: ObjectID(doc_id)}, function ( err, doc ) {
+            mongo_db.collection( collection ).findOne( { _id: ObjectID( doc_id ) }, function ( err, doc ) {
                 if ( doc )
                 {
                     // doc_id is an ObjectId
-                    cb( null, {'doc_id_type': ObjectID(doc_id), 'doc': doc} );
+                    cb( null, {'doc_id_type': ObjectID( doc_id ), 'doc': doc} );
                 }
                 else
                 {
-                    mongo.collection(collection).findOne({_id: doc_id}, function ( err, doc ) {
+                    mongo_db.collection( collection ).findOne( { _id: doc_id }, function ( err, doc ) {
                         if ( doc )
                         {
                             // doc_id is string
@@ -266,7 +264,7 @@ exports.get_id_type = function ( mongo, collection, doc_id, cb ) {
         else
         {
             // if the value is not a valid ObjectId value we try as an integer then as a last resort, a string.
-            mongo.collection(collection).findOne({_id: parseInt(doc_id)}, function ( err, doc ) {
+            mongo_db.collection(collection).findOne({_id: parseInt(doc_id)}, function ( err, doc ) {
                 if ( doc ) 
                 {
                     // doc_id is integer
@@ -275,7 +273,7 @@ exports.get_id_type = function ( mongo, collection, doc_id, cb ) {
                 }
                 else
                 {
-                    mongo.collection(collection).findOne({_id: doc_id}, function ( err, doc ) {
+                    mongo_db.collection(collection).findOne({_id: doc_id}, function ( err, doc ) {
                         if ( doc ) 
                         {
                             // doc_id is string
@@ -296,12 +294,12 @@ exports.get_id_type = function ( mongo, collection, doc_id, cb ) {
     }
 };
 
-// gets the Databases and collections
 /**
- * MongoClient로 부터 특정 DB의 컬렉션을 조회
+ * MongoClient로 부터 특정 DB의 컬렉션을 조회.  
+ * 컬렉션 이름 목록을 콜백으로 받는다.
  * @param {mongodb.MongoClient} mongo_client 
  * @param {string} db_name 
- * @param {ErrResCallback} cb 
+ * @param {app_callback} cb 
  */
 exports.get_sidebar_list = function ( mongo_client, db_name, cb ) {
     var async = require('async');
@@ -355,21 +353,21 @@ exports.get_sidebar_list = function ( mongo_client, db_name, cb ) {
 };
 
 // order the object by alpha key
-exports.order_object = function(unordered){
-    if(unordered !== undefined){
+exports.order_object = function( unordered ) {
+    if ( unordered !== undefined ) {
         var ordered = {};
-        var keys = Object.keys(unordered);
-        exports.order_array(keys);
-        keys.forEach(function (key){
+        var keys = Object.keys( unordered );
+        exports.order_array( keys );
+        keys.forEach( function ( key ) {
             ordered[key] = unordered[key];
         });
     }
     return ordered;
 };
 
-exports.order_array = function(array){
-    if(array){
-        array.sort(function (a, b){
+exports.order_array = function ( array ) {
+    if ( array ) {
+        array.sort( function ( a, b ) {
             a = a.toLowerCase();
             b = b.toLowerCase();
             if(a === b)return 0;
@@ -387,7 +385,7 @@ exports.order_array = function(array){
  * @param {string} err 에러메시지
  * @param {string} conn 연결키 문자열
  */
-exports.render_error = function( res, req, err, conn ) {
+exports.render_error = function ( res, req, err, conn ) {
     var connection_list = req.nconf.connections.get('connections');
 
     var conn_string = '';
@@ -409,7 +407,7 @@ exports.render_error = function( res, req, err, conn ) {
  * @param {mongodb.CollectionInfo} collection_list 
  * @returns {string[]} 컬렉션 이름 배열
  */
-exports.cleanCollections = function( collection_list ) {
+exports.cleanCollections = function ( collection_list ) {
     const list = [];
     _.each( collection_list, function ( item ) {
         list.push( item.name );

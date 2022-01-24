@@ -89,43 +89,44 @@ $(document).ready(function(){
         $('#export_coll').val($(this).attr('id'));
     });
 
-    // when docs per page is changed
-    $(document).on('change', '#docsPerPage', function(){
-        localStorage.setItem('docsPerPage', $('#docsPerPage').val());
+    // 페이지뷰 항목수 변경시 콜백 when docs per page is changed
+    $(document).on('change', '#docsPerPage', function() {
+        localStorage.setItem( 'docsPerPage', $('#docsPerPage').val() );
         window.location = $('#app_context').val() + '/app/' + $('#conn_name').val() + '/' + $('#db_name').val() + '/' + $('#coll_name').val() + '/view/1';
     });
 
-    // set the URL search parameters
-    $(document).on('click', '#searchModalAction', function(){
-        var key_name = $('#search_key_fields option:selected').text();
-        var val = $('#search_value_value').val();
+    // 컬렉션 - 도큐먼트 찾기 모달 띄우기 set the URL search parameters
+    $(document).on('click', '#searchModalAction', function() {
+        var key_name    = $('#search_key_fields option:selected').text();
+        var val         = $('#search_value_value').val();
 
-        if(key_name !== '' && val !== ''){
+        if ( key_name !== '' && val !== '') {
             // build the simply key/value query object and call paginate();
             var qry_obj = {};
 
             // check if value is a number/integer
             var intReg = new RegExp('^[0-9]+$');
-            if(val.match(intReg)){
-                val = parseInt(val);
-            }else{
-            // if we find an integer wrapped in quotes
+            if ( val.match( intReg ) ) {
+                val = parseInt( val );
+            } 
+            else {
+                // if we find an integer wrapped in quotes
                 var strIntReg = new RegExp('^"[0-9]"+$');
-                if(val.match(strIntReg)){
-                    val = val.replace(/"/g, '');
+                if ( val.match( strIntReg ) ) {
+                    val = val.replace( /"/g, '' );
                 }
             }
 
             qry_obj[key_name] = val;
 
             // set the object to local storage to be used if page changes
-            localStorage.setItem('searchQuery', JSON.stringify(qry_obj));
+            localStorage.setItem( 'searchQuery', JSON.stringify( qry_obj ) );
 
             // check if the key_name is "_id"
-            if (key_name == '_id')
+            if ( key_name == '_id' )
             {
-                var query_string = toEJSON.serializeString('{"_id":ObjectId("' + val + '")}');
-                localStorage.setItem('searchQuery', query_string);
+                var query_string = toEJSON.serializeString( '{"_id":ObjectId("' + val + '")}' );
+                localStorage.setItem( 'searchQuery', query_string );
             }
             
             // go to page 1 to remove any issues being on page X from another query/view
@@ -133,30 +134,33 @@ $(document).ready(function(){
 
             // close the searchModal
             $('#searchModal').modal('hide');
-        }else{
-            show_notification('Please enter a key (field) and a value to search for', 'danger');
+        }
+        else {
+            show_notification( 'Please enter a key (field) and a value to search for', 'danger' );
         }
     });
 
-    $(document).on('click', '#coll_name_edit', function(){
+    // 컬렉션 이름변경 버튼 이벤트
+    $(document).on('click', '#coll_name_edit', function() {
         var newCollName = $('#coll_name_newval').val();
-        if(newCollName !== ''){
-            $.ajax({
+        if ( newCollName !== '' ) {
+            $.ajax( {
                 method: 'POST',
                 url: $('#app_context').val() + '/collection/' + $('#conn_name').val() + '/' + $('#db_name').val() + '/' + $('#coll_name').val() + '/coll_name_edit',
-                data: {'new_collection_name': newCollName}
+                data: { 'new_collection_name': newCollName }
             })
-            .done(function(data){
-                $('#headCollectionName').text(newCollName);
+            .done( function( data ) {
+                $('#headCollectionName').text( newCollName );
                 $('#collectioName').modal('toggle');
-                localStorage.setItem('message_text', data.msg);
+                localStorage.setItem( 'message_text', data.msg );
                 window.location.href = $('#app_context').val() + '/app/' + $('#conn_name').val() + '/' + $('#db_name').val() + '/' + newCollName + '/view?page=1';
             })
-            .fail(function(data){
-                show_notification(data.responseJSON.msg, 'danger');
+            .fail( function( data ) {
+                show_notification( data.responseJSON.msg, 'danger' );
             });
-        }else{
-            show_notification('Please enter an index', 'danger');
+        }
+        else {
+            show_notification( 'Please enter an index', 'danger' );
         }
     });
 

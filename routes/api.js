@@ -5,7 +5,7 @@ const mongodb       = require('mongodb');
 const common        = require('./common');
 
 // runs on all routes and checks password if one is setup
-router.all( '/api/*', common.checkLogin, function (req, res, next){
+router.all( '/api/*', common.checkLogin, function ( req, res, next ) {
     next();
 });
 
@@ -17,7 +17,7 @@ router.post( '/api/:conn/:db/:coll/:page', function ( req, res, next ) {
 
     // Check for existance of connection
     if ( connection_list[req.params.conn] === undefined ) {
-        res.status(400).json({'msg': req.i18n.__('Invalid connection name')});
+        res.status(400).json( {'msg': req.i18n.__('Invalid connection name')} );
     }
 
     // Validate database name
@@ -27,7 +27,11 @@ router.post( '/api/:conn/:db/:coll/:page', function ( req, res, next ) {
 
     // Get DB's form pool
     /** @type {mongodb.Db} */
-    var mongo_db = connection_list[req.params.conn].native.db(req.params.db);
+    //var mongo_db = connection_list[req.params.conn].native.db(req.params.db);
+
+    /** @type {mongodb.MongoClient} */
+    const mongo_client  = connection_list[req.params.conn].native;
+    const mongo_db      = mongo_client.db( req.params.db );
 
     var page_size = docs_per_page;
     var page = 1;
@@ -101,7 +105,7 @@ router.post( '/api/:conn/:db/:coll/:page', function ( req, res, next ) {
 });
 
 // Gets monitoring data
-router.get( '/api/monitoring/:conn', function (req, res, next){
+router.get( '/api/monitoring/:conn', function ( req, res, next ) {
     var dayBack = new Date();
     dayBack.setDate(dayBack.getDate() - 1);
 
@@ -182,10 +186,19 @@ router.get( '/api/monitoring/:conn', function (req, res, next){
                 uptime = uptime + ' minutes';
             }
 
-            if(err){
-                res.status(400).json({'msg': req.i18n.__('Could not get server monitoring')});
-            }else{
-                res.status(200).json({data: returnedData, dataRetrieved: serverEvents[0].dataRetrieved, pid: serverEvents[0].pid, version: serverEvents[0].version, uptime: uptime});
+            if ( err )
+            {
+                res.status(400).json( {'msg': req.i18n.__('Could not get server monitoring')} );
+            }
+            else
+            {
+                res.status(200).json( {
+                    data: returnedData,
+                    dataRetrieved: serverEvents[0].dataRetrieved,
+                    pid: serverEvents[0].pid,
+                    version: serverEvents[0].version,
+                    uptime: uptime
+                });
             }
         }
     });

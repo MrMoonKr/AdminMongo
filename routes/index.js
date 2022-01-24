@@ -23,34 +23,39 @@ router.all( '/app/*', common.checkLogin, function ( req, res, next ) {
 });
 
 // the home route
-router.get('/app/', function (req, res, next){
+router.get( '/app/', function ( req, res, next ) {
     var connection_list = req.nconf.connections.get('connections');
 
-    if(connection_list){
-        if(Object.keys(connection_list).length > 0){
+    if ( connection_list ) {
+        if ( Object.keys( connection_list ).length > 0 ) {
             // we have a connection and redirect to the first
             var first_conn = Object.keys(connection_list)[0];
-            res.redirect(req.app_context + '/app/' + first_conn);
+            res.redirect( req.app_context + '/app/' + first_conn );
             return;
         }
     }
     // if no connections, go to connection setup
-    res.redirect(req.app_context + '/app/connection_list');
+    res.redirect( req.app_context + '/app/connection_list' );
     return;
 });
 
 // login page
-router.get('/app/login', function (req, res, next){
+router.get( '/app/login', function ( req, res, next ) {
     var passwordConf = req.nconf.app.get('app');
 
     // if password is set then render the login page, else continue
-    if(passwordConf && passwordConf.hasOwnProperty('password')){
-        res.render('login', {
+    if ( passwordConf && passwordConf.hasOwnProperty('password') ) 
+    {
+        res.render( 'login', {
+            title: '로그인 페이지 입니다',
+            layout: 'layout-login',
             message: '',
             helpers: req.handlebars.helpers
         });
-    }else{
-        res.redirect(req.app_context + '/');
+    }
+    else
+    {
+        res.redirect( req.app_context + '/' );
     }
 });
 
@@ -223,8 +228,8 @@ router.get( '/app/:conn/:db/:coll/view/', function ( req, res, next ) {
     res.redirect( req.app_context + '/app/' + req.params.conn + '/' + req.params.db + '/' + req.params.coll + '/view/1' );
 });
 
-// Shows the document preview/pagination
-router.get( '/app/:conn/:db/:coll/view/:page_num', function (req, res, next){
+// 컬렉션 - 페이지 뷰 Shows the document preview/pagination
+router.get( '/app/:conn/:db/:coll/view/:page_num', function ( req, res, next ) {
     var connection_list = req.app.locals.dbConnections;
     var docs_per_page = 5;
 
@@ -357,6 +362,7 @@ router.get( '/app/:conn/:db/:coll/new', function ( req, res, next ) {
     mongo_db.listCollections().toArray( function ( err, collection_list ) {
         // clean up the collection list
         collection_list = common.cleanCollections( collection_list );
+
         common.get_sidebar_list( mongo_client, req.params.db, function ( err, sidebar_list ) {
             if ( collection_list.indexOf( req.params.coll ) === -1 ) 
             {

@@ -152,53 +152,55 @@
             <input type="hidden" id="export_coll"> 
             <div id="mobile-indicator"></div>                  
         </div>
-        
+
         <!-- Collection Name Modal -->
         <div class="modal fade" id="collectioName" tabindex="-1" role="dialog" aria-labelledby="collectionNameLabel">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="collectionNameLabel">{{__ "Edit Collection name"}}</h4>
-                </div>
-                <div class="modal-body">
-                    <input type="text" class="form-control" id="coll_name_newval" value="{{coll_name}}">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">{{__ "Close"}}</button>
-                    <button type="button" class="btn btn-success btn-sm" id="coll_name_edit">{{__ "Save changes"}}</button>
-                </div>
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="collectionNameLabel">{{__ "Edit Collection name"}}</h4>
+                    </div>
+                    <div class="modal-body">
+                        <input type="text" class="form-control" id="coll_name_newval" value="{{coll_name}}">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">{{__ "Close"}}</button>
+                        <button type="button" class="btn btn-success btn-sm" id="coll_name_edit">{{__ "Save changes"}}</button>
+                    </div>
                 </div>
             </div>
         </div>
         <!-- Collection Name Modal -->
+
         <!-- Search documents Modal -->
         <div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="documentSearchLabel">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="collectionNameLabel">{{__ "Search for documents"}}</h4>
-                    <p>{{__ "BSON types are not supported"}}</p>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="recipient-name" class="control-label">{{__ "Key (Field)"}}:</label>
-                        <select class="form-control" id="search_key_fields"></select>
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="collectionNameLabel">{{__ "Search for documents"}}</h4>
+                        <p>{{__ "BSON types are not supported"}}</p>
                     </div>
-                    <div class="form-group">
-                        <label for="message-text" class="control-label">{{__ "Value"}}</label>
-                        <input type="text" class="form-control" id="search_value_value" placeholder="{{__ "Value"}}">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="recipient-name" class="control-label">{{__ "Key (Field)"}}:</label>
+                            <select class="form-control" id="search_key_fields"></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="message-text" class="control-label">{{__ "Value"}}</label>
+                            <input type="text" class="form-control" id="search_value_value" placeholder="{{__ "Value"}}" />
+                        </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default btn-sm pull-left" data-dismiss="modal">{{__ "Close"}}</button>
-                    <button type="button" class="btn btn-success btn-sm pull-right" id="searchModalAction">{{__ "Search"}}</button>
-                </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default btn-sm pull-left" data-dismiss="modal">{{__ "Close"}}</button>
+                        <button type="button" class="btn btn-success btn-sm pull-right" id="searchModalAction">{{__ "Search"}}</button>
+                    </div>
                 </div>
             </div>
         </div>
         <!-- Search documents Modal -->
+
         <!-- Query Modal -->
         <div class="modal fade" id="queryDocuments" tabindex="-1" role="dialog" aria-labelledby="queryDocumentsLabel">
             <div class="modal-dialog" role="document">
@@ -219,6 +221,7 @@
             </div>
         </div>
         <!-- Query Modal -->
+        
         <!-- Export collection Modal -->
         <div class="modal fade" id="exportModal" tabindex="-1" role="dialog" aria-labelledby="exportCollectionLabel">
             <div class="modal-dialog" role="document">
