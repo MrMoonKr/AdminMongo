@@ -299,18 +299,18 @@ exports.get_id_type = function ( mongo, collection, doc_id, cb ) {
 // gets the Databases and collections
 /**
  * MongoClient로 부터 특정 DB의 컬렉션을 조회
- * @param {mongodb.MongoClient} mongo_db 
+ * @param {mongodb.MongoClient} mongo_client 
  * @param {string} db_name 
  * @param {ErrResCallback} cb 
  */
-exports.get_sidebar_list = function ( mongo_db, db_name, cb ) {
+exports.get_sidebar_list = function ( mongo_client, db_name, cb ) {
     var async = require('async');
     var db_obj = {};
 
     if ( db_name == null ) // if no DB is specified, we get all DBs and collections
     {
         //var adminDB = mongo_db.admin();
-        var adminDB = mongo_db.db().admin();
+        var adminDB = mongo_client.db().admin();
         adminDB.listDatabases( function ( err, db_list ) {
             if ( db_list ) 
             {
@@ -319,7 +319,7 @@ exports.get_sidebar_list = function ( mongo_db, db_name, cb ) {
                         var skipped_dbs = ['null', 'admin', 'local'];
                         if ( skipped_dbs.indexOf( value.name ) === -1 )
                         {
-                            mongo_db.db( value.name ).listCollections().toArray( function ( err, collections ) {
+                            mongo_client.db( value.name ).listCollections().toArray( function ( err, collections ) {
                                 collections = exports.cleanCollections( collections );
                                 exports.order_array( collections );
                                 db_obj[value.name] = collections;
@@ -345,7 +345,7 @@ exports.get_sidebar_list = function ( mongo_db, db_name, cb ) {
     }
     else
     {
-        mongo_db.db( db_name ).listCollections().toArray( function ( err, collections) {
+        mongo_client.db( db_name ).listCollections().toArray( function ( err, collections) {
             collections = exports.cleanCollections( collections );
             exports.order_array( collections );
             db_obj[db_name] = collections;
