@@ -24,16 +24,16 @@ const collectionRoute   = require('./routes/collection');
 
 // set the base dir to __dirname when running as webapp and electron path if running as electron app
 const dir_base = __dirname;
-if(process.versions['electron']){
-    dir_base = path.join(process.resourcesPath.toString(), 'app/');
+if ( process.versions[ 'electron' ] ) {
+    dir_base = path.join( process.resourcesPath.toString(), 'app/' );
 }
 
 const app = express(); // 앱 생성
 
-const i18n = new ( require('i18n-2') )({
-    locales: ['en', 'de', 'es', 'ru', 'zh-cn', 'it'],
+const i18n = new( require( 'i18n-2' ) )( {
+    locales: [ 'en', 'de', 'es', 'ru', 'zh-cn', 'it' ],
     directory: path.join( dir_base, 'locales/' )
-});
+} );
 
 // nedb for server stats
 const Datastore = require('nedb');
@@ -41,62 +41,63 @@ const Datastore = require('nedb');
 /**
  * 서버상태 저장용 NeDB. '/data/dbStats.db'
  */
-const nedbStats = new Datastore({
-    filename: path.join(dir_base, 'data/dbStats.db'),
+const nedbStats = new Datastore( {
+    filename: path.join( dir_base, 'data/dbStats.db' ),
     autoload: true
-});
+} );
 
 // view engine setup
 //app.set('views', path.join(dir_base, 'views/'));
-app.engine('hbs', handlebars({
-    extname: 'hbs', 
-    defaultLayout: path.join(dir_base, 'views/layouts/layout.hbs')
-}));
-app.set('view engine', 'hbs');
-app.set('views', path.join(dir_base, 'views/'));
+app.engine( 'hbs', handlebars( {
+    extname: 'hbs',
+    defaultLayout: path.join( dir_base, 'views/layouts/layout.hbs' )
+} ) );
+app.set( 'view engine', 'hbs' );
+app.set( 'views', path.join( dir_base, 'views/' ) );
 
 // Check existence of backups dir, create if nothing
 if(!fs.existsSync(path.join(dir_base, 'backups'))) fs.mkdirSync(path.join(dir_base, 'backups'));
 
 // helpers for the handlebars templating platform
-const hbr = handlebars.create({
+const hbr = handlebars.create( {
     helpers: {
-        __: function (value){
-            return i18n.__(value);
+        __: function ( value ) {
+            return i18n.__( value );
         },
-        toJSON: function (object){
-            return JSON.stringify(object);
+        toJSON: function ( object ) {
+            return JSON.stringify( object );
         },
-        niceBool: function (object){
-            if(object === undefined)return'No';
-            if(object === true)return'Yes';
-            return'No';
+        niceBool: function ( object ) {
+            if ( object === undefined ) return 'No';
+            if ( object === true ) return 'Yes';
+            return 'No';
         },
-        app_context: function (){
-            if(nconf.stores.app.get('app:context') !== undefined){
-                return'/' + nconf.stores.app.get('app:context');
-            }return'';
+        app_context: function () {
+            if ( nconf.stores.app.get( 'app:context' ) !== undefined ) {
+                return '/' + nconf.stores.app.get( 'app:context' );
+            }
+            return '';
         },
-        ifOr: function (v1, v2, options){
-            return(v1 || v2) ? options.fn(this) : options.inverse(this);
+        ifOr: function ( v1, v2, options ) {
+            return ( v1 || v2 ) ? options.fn( this ) : options.inverse( this );
         },
-        ifNotOr: function (v1, v2, options){
-            return(v1 || v2) ? options.inverse(this) : options.fn(this);
+        ifNotOr: function ( v1, v2, options ) {
+            return ( v1 || v2 ) ? options.inverse( this ) : options.fn( this );
         },
-        formatBytes: function (bytes){
-            if(bytes === 0)return'0 Byte';
+        formatBytes: function ( bytes ) {
+            if ( bytes === 0 ) return '0 Byte';
             var k = 1000;
             var decimals = 2;
             var dm = decimals + 1 || 3;
-            var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-            var i = Math.floor(Math.log(bytes) / Math.log(k));
-            return(bytes / Math.pow(k, i)).toPrecision(dm) + ' ' + sizes[i];
+            var sizes = [ 'Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB' ];
+            var i = Math.floor( Math.log( bytes ) / Math.log( k ) );
+            return ( bytes / Math.pow( k, i ) ).toPrecision( dm ) + ' ' + sizes[ i ];
         },
-        formatDuration: function(time){
-            return moment.duration(time, 'seconds').humanize();
+        formatDuration: function ( time ) {
+            return moment.duration( time, 'seconds' ).humanize();
         }
     }
-});
+} );
 
 // setup nconf to read in the file
 // create config dir and blank files if they dont exist
